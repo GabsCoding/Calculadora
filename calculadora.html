@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	div#tudo{
+		margin: auto;
+		float: center;
+		position: relative;
+		align-content: center;
+	}
+	
+	div#barra_visor p{
+		width: 150px;
+		height: 35px;
+		border: solid black 1px;
+		margin: 2px;
+		font-size: 21pt;
+		text-align: right;
+	}
+	
+	.botao{
+		display: inline;
+	}
+	
+	.botao button{
+		float: center;
+		font-size: 12pt;
+		font-weight: bold;
+		border-color: black;
+		border-radius: 5px;
+		color: black;
+		width: 36px;
+		background-color: white;
+	}
+	
+	.botao button:hover{
+		color: white;
+		background-color: gray;
+	}
+	
+</style>
+</head>
+<body>
+	<div id="tudo">
+		<div id="barra_visor"><p id="display">0</p></div>
+		<div class="botao l1 c1"><button id="plusmn" onclick="main(this)">&plusmn;</button></div>
+		<div class="botao l1 c2"><button id="pi" onclick="main(this)">&pi;</button></div>
+		<div class="botao l1 c3"><button id="sqrt" onclick="main(this)">&radic;</button></div>
+		<div class="botao l1 c4"><button id="clear" onclick="main(this)">C</button></div><br />
+		<div class="botao l2 c1"><button id="7" onclick="main(this)">7</button></div>
+		<div class="botao l2 c2"><button id="8" onclick="main(this)">8</button></div>
+		<div class="botao l2 c3"><button id="9" onclick="main(this)">9</button></div>
+		<div class="botao l2 c4"><button id="div" onclick="main(this)">&div;</button></div><br />
+		<div class="botao l3 c1"><button id="4" onclick="main(this)">4</button></div>
+		<div class="botao l3 c2"><button id="5" onclick="main(this)">5</button></div>
+		<div class="botao l3 c3"><button id="6" onclick="main(this)">6</button></div>
+		<div class="botao l3 c4"><button id="times" onclick="main(this)">&times;</button></div><br />
+		<div class="botao l4 c1"><button id="1" onclick="main(this)">1</button></div>
+		<div class="botao l4 c2"><button id="2" onclick="main(this)">2</button></div>
+		<div class="botao l4 c3"><button id="3" onclick="main(this)">3</button></div>
+		<div class="botao l4 c4"><button id="minus" onclick="main(this)">&minus;</button></div><br />
+		<div class="botao l5 c1"><button id="equal" onclick="main(this)">=</button></div>
+		<div class="botao l5 c2"><button id="0" onclick="main(this)">0</button></div>
+		<div class="botao l5 c3"><button id="point" onclick="main(this)">.</button></div>
+		<div class="botao l5 c4"><button id="plus" onclick="main(this)">&plus;</button></div>
+	</div>
+	
+	<script>	
+		var display = document.getElementById("display");
+		var digitos = ["0","1","2","3","4","5","6","7","8","9"];
+		var simples = {
+			"pi": function (value){return Math.PI;},
+			"plusmn": function (value){ return (-1*value);},
+			"sqrt":  function (value){return Math.sqrt(value);}
+		};
+		var pendente = null;
+		var sinal;
+		var binarias = {
+			"plus": function (a, b){ return a+b;},
+			"minus": function (a, b){ return a-b;},
+			"div": function (a, b){ return a/b;},
+			"times": function (a, b){ return a*b;}
+		};
+		var numberEditing = {"editing": false,"point": false};
+		
+		function main(sender){
+			var op = sender.id;
+			
+			if(digitos.includes(op)){
+			
+				calcula_digitos(op);
+				
+			}else{
+				if(op in simples){
+			
+					calcula_simples(simples[op]);
+					
+				}else{ 
+					if(op == "equal"){
+					
+						calcula_igual();
+						
+					}else{
+						if(op in binarias){
+						
+							calcula_binarias(op);
+							
+						}else{
+							if(op == "point"){
+							
+								ponto();
+								
+							}else{
+								if(op == "clear"){
+							
+									limpa();
+								}
+								
+							}
+							
+						}
+					}
+					
+				}
+			}
+		}
+		
+		function calcula_digitos(value){
+		
+			if(numberEditing["editing"]){
+				display.textContent += value;
+			}else{
+				display.textContent = value;
+			}
+			
+			numberEditing["editing"] = true;
+			
+			return parseFloat(display.textContent);
+		}
+		
+		function calcula_simples(value){
+			var fn = value(display.textContent);
+			
+			fn = resultado(fn);
+
+			display.textContent = fn;
+			
+			numberEditing["editing"] = false;
+			numberEditing["point"] = false;
+		}
+		
+		function calcula_binarias(value){ 		
+			if(pendente == null){
+				pendente = parseFloat(display.textContent);
+			}else{
+				var fn = binarias[sinal];
+				pendente = fn(pendente, parseFloat(display.textContent));
+			}
+			
+			sinal = value;
+			numberEditing["editing"] = false;
+			numberEditing["point"] = false;
+		}
+		
+		function calcula_igual(){
+			if(pendente == null){
+				display.textContent = display.textContent; 
+			}else{
+				var fn = binarias[sinal];
+				var calc = fn(pendente, parseFloat(display.textContent));
+
+				calc = resultado(calc);
+				
+				display.textContent = calc;
+				numberEditing["editing"] = false;
+				pendente = null;
+			}
+			
+			numberEditing["point"] = false;
+		}
+		
+		function limpa(){
+			numberEditing["editing"] = false;
+			display.textContent = "0";
+		}
+		
+		function ponto(){
+			if(numberEditing["point"] == false){
+				display.textContent += ".";
+				numberEditing["point"] = true;
+			}
+		}
+
+		function resultado(result){
+
+			if(result.toString().length > 11){
+				result = result.toPrecision(10);
+			}
+
+			return result;
+		}
+	</script>
+</body>
+</html>
